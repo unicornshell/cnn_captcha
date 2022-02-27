@@ -15,7 +15,7 @@
   "use_labels_json_file": false,
   "remote_url": "http://127.0.0.1:6100/captcha/",
   "cycle_stop": 20000,
-  "acc_stop": 0.99,
+  "acc_stop": 0.8,
   "cycle_save": 500,
   "enable_gpu": 1,
   "train_batch_size": 128,

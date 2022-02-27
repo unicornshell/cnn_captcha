@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import json
 
 import tensorflow as tf
@@ -10,9 +9,6 @@ import random
 import os
 from cnnlib.network import CNN
 
-
-class TrainError(Exception):
-    pass
 
 
 class TrainModel(CNN):
@@ -178,8 +174,10 @@ class TrainModel(CNN):
                 if step % 10 == 0:
                     # 基于训练集的测试
                     batch_x_test, batch_y_test = self.get_batch(i, size=self.train_batch_size)
-                    acc_char = sess.run(accuracy_char_count, feed_dict={self.X: batch_x_test, self.Y: batch_y_test, self.keep_prob: 1.})
-                    acc_image = sess.run(accuracy_image_count, feed_dict={self.X: batch_x_test, self.Y: batch_y_test, self.keep_prob: 1.})
+                    acc_char = sess.run(accuracy_char_count,
+                                        feed_dict={self.X: batch_x_test, self.Y: batch_y_test, self.keep_prob: 1.})
+                    acc_image = sess.run(accuracy_image_count,
+                                         feed_dict={self.X: batch_x_test, self.Y: batch_y_test, self.keep_prob: 1.})
                     print("第{}次训练 >>> ".format(step))
                     print("[训练集] 字符准确率为 {:.5f} 图片准确率为 {:.5f} >>> loss {:.10f}".format(acc_char, acc_image, cost_))
 
@@ -188,8 +186,10 @@ class TrainModel(CNN):
 
                     # 基于验证集的测试
                     batch_x_verify, batch_y_verify = self.get_verify_batch(size=self.test_batch_size)
-                    acc_char = sess.run(accuracy_char_count, feed_dict={self.X: batch_x_verify, self.Y: batch_y_verify, self.keep_prob: 1.})
-                    acc_image = sess.run(accuracy_image_count, feed_dict={self.X: batch_x_verify, self.Y: batch_y_verify, self.keep_prob: 1.})
+                    acc_char = sess.run(accuracy_char_count,
+                                        feed_dict={self.X: batch_x_verify, self.Y: batch_y_verify, self.keep_prob: 1.})
+                    acc_image = sess.run(accuracy_image_count,
+                                         feed_dict={self.X: batch_x_verify, self.Y: batch_y_verify, self.keep_prob: 1.})
                     print("[验证集] 字符准确率为 {:.5f} 图片准确率为 {:.5f} >>> loss {:.10f}".format(acc_char, acc_image, cost_))
 
                     # with open("loss_test.csv", "a+") as f:
@@ -206,35 +206,6 @@ class TrainModel(CNN):
                     print("定时保存模型成功")
                 step += 1
             saver.save(sess, self.model_save_dir)
-
-    def recognize_captcha(self):
-        label, captcha_array = self.gen_captcha_text_image(self.train_img_path, random.choice(self.train_images_list))
-
-        f = plt.figure()
-        ax = f.add_subplot(111)
-        ax.text(0.1, 0.9, "origin:" + label, ha='center', va='center', transform=ax.transAxes)
-        plt.imshow(captcha_array)
-        # 预测图片
-        image = self.convert2gray(captcha_array)
-        image = image.flatten() / 255
-
-        y_predict = self.model()
-
-        saver = tf.train.Saver()
-        with tf.Session() as sess:
-            saver.restore(sess, self.model_save_dir)
-            predict = tf.argmax(tf.reshape(y_predict, [-1, self.max_captcha, self.char_set_len]), 2)
-            text_list = sess.run(predict, feed_dict={self.X: [image], self.keep_prob: 1.})
-            predict_text = text_list[0].tolist()
-
-        print("正确: {}  预测: {}".format(label, predict_text))
-        # 显示图片和预测结果
-        p_text = ""
-        for p in predict_text:
-            p_text += str(self.char_set[p])
-        print(p_text)
-        plt.text(20, 1, 'predict:{}'.format(p_text))
-        plt.show()
 
 
 def main():
@@ -265,9 +236,9 @@ def main():
         os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
     tm = TrainModel(train_image_dir, verify_image_dir, char_set, model_save_dir, cycle_stop, acc_stop, cycle_save,
-                     image_suffix, train_batch_size, test_batch_size, verify=False)
-    # tm.train_cnn()  # 开始训练模型
-    tm.recognize_captcha()  # 识别图片示例
+                    image_suffix, train_batch_size, test_batch_size, verify=True)
+    tm.train_cnn()  # 开始训练模型
+    # tm.recognize_captcha()  # 识别图片示例
 
 
 if __name__ == '__main__':
